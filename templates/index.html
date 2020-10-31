@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capstone Website</title>
+    <!-- resources: mdn web docs, w3schools -->
+</head>
+
+<body>
+    <div class="container">
+        <a href="https://grahamschool.uchicago.edu/academic-programs/masters-degrees/analytics">
+            <img src="image.jpeg" width="200" alt="">
+        </a>
+        <h3>Multi-Label Classification for ICD-10 Coding of Clinical Records with BERT</h3>
+        <h4><i>A capstone project from the M.Sc. Analytics program</i></h4>
+        <h4><i>Author: Alice Guo, Mo Ma and Han Huang</i></h4>
+        <p>copyright &copy; 2020</p>
+
+        <form action="" method="post" role="form">
+            {{form.csrf}}
+            <label for="clinical_text">clinical text you want to analyze</label>
+            <br>
+            <!-- <textarea name="" id="clinical_text" cols="50" rows="10"></textarea> -->
+            <br>
+            <input type="text" name="clinical_text" id="clinical_text" placeholder="eg.discharge summary" value="i have headache">
+            <br>
+            <!-- <input type="submit"> -->
+            <button type="submit">please submit</button>
+
+
+
+        </form>
+        <br>
+
+        {% with messages = get_flashed_messages(with_categories=true)%}
+        {% if messages%}
+        {% for message in messages %}
+        {% if "Error" not in message[1] %}
+        <div class='alert alert-info'>
+            <strong>{{message[1]}}</strong>
+        </div>
+
+        <h4>Prediction:</h4>
+        <h3>{{number}}</h3>
+
+        <br>
+
+        <h4>prediction labels</h4>
+        {% for table in tables %}
+        {{table|safe}}
+        {% endfor %}
+
+        {%if "Error" in message[1]%}
+        <div class="alert alert-warning">
+            {{message[1]}}
+        </div>
+        {%endif%}
+        {%endif%}
+        {%endfor%}
+
+        {%endif%}
+        {%endwith%}
+
+
+    </div>
+</body>
+
+</html>

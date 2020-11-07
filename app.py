@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import os
+from IPython.core.display import display, HTML
+from flask import Markup
 import seaborn as sns
 import pandas as pd
 from flask import Flask, request, jsonify, render_template, flash
@@ -6,6 +9,7 @@ from wtforms import Form, validators, StringField
 from preprocessing import preprocess1, preprocessing, convert_text_tensor
 from prediction import prepare_dataloader, evaluation, prediction_probability
 from model import HAN_bert
+from attention import highlight
 import torch
 import torch.nn as nn
 import transformers
@@ -21,6 +25,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import pickle
 import warnings
+import html
 from sklearn.pipeline import FeatureUnion, Pipeline
 warnings.filterwarnings("ignore")
 
@@ -39,6 +44,7 @@ class InputForm(Form):
 num1 = 0
 df_html = 0
 finding = 0
+text_color = 0
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -46,10 +52,20 @@ def predict():
     global num1
     global df_html
     global finding
+    global text_color
     #form = InputForm(request.form)
     # form=request.form['clinical_text']
     if request.method == 'POST':
-        finding = request.form['clinical_text']
+        file = request.files["csvfile"]
+        if not os.path.isdir("static"):
+            os.mkdir("static")
+        filepath = os.path.join("static", file.filename)
+        file.save(filepath)
+        input_id = request.form["input_id"]
+        input_column = request.form["input_column"]
+        finding_df = pd.read_csv(filepath, index_col="HADM_ID")
+        finding = finding_df.loc[int(input_id), str(input_column)]
+        #finding = request.form['clinical_text']
 
         # if form.validate():
         if len(finding) > 0:
@@ -76,12 +92,14 @@ def predict():
             df_html = df_final.to_html(index=False, col_space=150). \
                 replace('<tr>', '<tr style="text-align: center;">'). \
                 replace('<th style="', '<th style="text-align: center;')
-
+            text_color = Markup(
+                highlight(text, paragraph_list_id, s_attn, w_attn2))
+            #text_color = text_color.to_html()
         else:
             flash('Error: the form of clinical text is not correct.')
         #global num1
 
-    return render_template('index.html', form=finding, number=num1, tables=[df_html])
+    return render_template('index_han.html', form=finding, number=num1, tables=[df_html], attention_map=text_color)
 
 
 if __name__ == '__main__':
